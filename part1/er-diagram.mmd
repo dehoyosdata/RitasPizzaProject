@@ -1,0 +1,103 @@
+erDiagram
+    BRANCH {
+        NUMBER branch_id PK
+        VARCHAR2 street_addr
+        VARCHAR2 city
+        VARCHAR2 phone_no
+        VARCHAR2 opening_hrs
+        NUMBER seating_cap
+        NUMBER manager_id FK
+    }
+
+    EMPLOYEE {
+        NUMBER employee_id PK
+        VARCHAR2 name
+        VARCHAR2 type
+        DATE hire_date
+        NUMBER wage
+        NUMBER branch_id FK
+    }
+
+    CUSTOMER {
+        NUMBER customer_id PK
+        VARCHAR2 name
+        VARCHAR2 email
+        VARCHAR2 phone
+        NUMBER rewards_pts
+        DATE date_joined
+    }
+
+    PIZZA_ORDER {
+        NUMBER order_id PK
+        DATE order_date
+        VARCHAR2 order_type
+        NUMBER total_price
+        NUMBER customer_id FK
+        NUMBER branch_id FK
+        NUMBER reward_id FK
+    }
+
+    MENU_ITEM {
+        NUMBER item_id PK
+        VARCHAR2 name
+        NUMBER price
+        VARCHAR2 category
+    }
+
+    INGREDIENT {
+        NUMBER ingredient_id PK
+        VARCHAR2 name
+        VARCHAR2 unit
+        NUMBER cost_per_unit
+    }
+
+    REWARD {
+        NUMBER reward_id PK
+        VARCHAR2 description
+        VARCHAR2 reward_type
+        DATE issue_date
+        VARCHAR2 used_status
+        NUMBER customer_id FK
+    }
+
+    INSPECTION {
+        NUMBER inspection_id PK
+        DATE insp_date
+        VARCHAR2 result
+        VARCHAR2 notes
+        NUMBER branch_id FK
+    }
+
+    ORDER_ITEM {
+        NUMBER order_id PK_FK
+        NUMBER item_id PK_FK
+        NUMBER quantity
+        NUMBER item_price
+    }
+
+    RECIPE {
+        NUMBER item_id PK_FK
+        NUMBER ingredient_id PK_FK
+        NUMBER amt_required
+    }
+
+    INVENTORY {
+        NUMBER branch_id PK_FK
+        NUMBER ingredient_id PK_FK
+        NUMBER qty_on_hand
+        DATE last_updated
+    }
+
+    EMPLOYEE ||--o{ BRANCH : "WorksAt (N:1)"
+    EMPLOYEE ||--|| BRANCH : "Manages (1:1, GMGR only)"
+    CUSTOMER ||--o{ PIZZA_ORDER : "Places (1:N, partial)"
+    BRANCH ||--o{ PIZZA_ORDER : "ProcessedBy (1:N)"
+    PIZZA_ORDER ||--o{ ORDER_ITEM : "contains"
+    MENU_ITEM ||--o{ ORDER_ITEM : "in"
+    MENU_ITEM ||--o{ RECIPE : "uses"
+    INGREDIENT ||--o{ RECIPE : "used_in"
+    BRANCH ||--o{ INVENTORY : "stocks"
+    INGREDIENT ||--o{ INVENTORY : "stocked_at"
+    CUSTOMER ||--o{ REWARD : "Owns (1:N)"
+    REWARD |o--o| PIZZA_ORDER : "Redeems (0..1:0..1)"
+    BRANCH ||--o{ INSPECTION : "HasInspection (1:N)"

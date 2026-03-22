@@ -1,0 +1,103 @@
+// Rita's Pizza — Relational Schema
+// Paste into https://dbdiagram.io to generate diagram
+
+Table BRANCH {
+  branch_id NUMBER [pk]
+  street_addr VARCHAR2(100) [not null]
+  city VARCHAR2(50) [not null]
+  phone_no VARCHAR2(20)
+  opening_hrs VARCHAR2(50)
+  seating_cap NUMBER
+  manager_id NUMBER [unique, not null, ref: - EMPLOYEE.employee_id, note: 'GMGR only']
+}
+
+Table EMPLOYEE {
+  employee_id NUMBER [pk]
+  name VARCHAR2(100) [not null]
+  type VARCHAR2(20) [not null, note: 'GMGR | Shift Manager | Cook/Kitchen | Cashier/Front']
+  hire_date DATE [not null]
+  wage NUMBER
+  branch_id NUMBER [not null, ref: > BRANCH.branch_id]
+}
+
+Table CUSTOMER {
+  customer_id NUMBER [pk]
+  name VARCHAR2(100) [not null]
+  email VARCHAR2(100)
+  phone VARCHAR2(20)
+  rewards_pts NUMBER [default: 0]
+  date_joined DATE
+}
+
+Table PIZZA_ORDER {
+  order_id NUMBER [pk]
+  order_date DATE [not null]
+  order_type VARCHAR2(20) [not null, note: 'online | in-person']
+  total_price NUMBER
+  customer_id NUMBER [ref: > CUSTOMER.customer_id, note: 'nullable — walk-in orders']
+  branch_id NUMBER [not null, ref: > BRANCH.branch_id]
+  reward_id NUMBER [unique, ref: - REWARD.reward_id, note: 'nullable — at most one reward per order']
+}
+
+Table MENU_ITEM {
+  item_id NUMBER [pk]
+  name VARCHAR2(100) [not null]
+  price NUMBER [not null]
+  category VARCHAR2(50)
+}
+
+Table INGREDIENT {
+  ingredient_id NUMBER [pk]
+  name VARCHAR2(100) [not null]
+  unit VARCHAR2(20) [not null]
+  cost_per_unit NUMBER
+}
+
+Table REWARD {
+  reward_id NUMBER [pk]
+  description VARCHAR2(200)
+  reward_type VARCHAR2(50)
+  issue_date DATE
+  used_status VARCHAR2(1) [default: 'N', note: 'Y or N']
+  customer_id NUMBER [not null, ref: > CUSTOMER.customer_id]
+}
+
+Table INSPECTION {
+  inspection_id NUMBER [pk]
+  insp_date DATE [not null]
+  result VARCHAR2(50) [not null]
+  notes VARCHAR2(500)
+  branch_id NUMBER [not null, ref: > BRANCH.branch_id]
+}
+
+Table ORDER_ITEM {
+  order_id NUMBER [ref: > PIZZA_ORDER.order_id]
+  item_id NUMBER [ref: > MENU_ITEM.item_id]
+  quantity NUMBER [not null]
+  item_price NUMBER [not null]
+
+  indexes {
+    (order_id, item_id) [pk]
+  }
+}
+
+Table RECIPE {
+  item_id NUMBER [ref: > MENU_ITEM.item_id]
+  ingredient_id NUMBER [ref: > INGREDIENT.ingredient_id]
+  amt_required NUMBER [not null]
+
+  indexes {
+    (item_id, ingredient_id) [pk]
+  }
+}
+
+Table INVENTORY {
+  branch_id NUMBER [ref: > BRANCH.branch_id]
+  ingredient_id NUMBER [ref: > INGREDIENT.ingredient_id]
+  qty_on_hand NUMBER [not null]
+  last_updated DATE
+
+  indexes {
+    (branch_id, ingredient_id) [pk]
+  }
+}

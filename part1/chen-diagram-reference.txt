@@ -1,0 +1,168 @@
+================================================================================
+              RITA'S PIZZA — CHEN NOTATION ER DIAGRAM (UPDATED)
+================================================================================
+
+KEY:
+  [ENTITY]          = Rectangle
+  (attribute)       = Oval
+  (_attribute_)     = Underlined oval (primary key)
+  <Relationship>    = Diamond
+  Cardinality       = On connecting lines (1, N, M, 0..1)
+  Double line       = Total participation
+  Single line       = Partial participation
+
+================================================================================
+                         BRANCH — EMPLOYEE — INSPECTION
+================================================================================
+
+                    (street_addr)  (city)  (phone_no)
+                          \         |        /
+              (opening_hrs)--- (_branch_id_) ---(seating_cap)
+                                    |
+                                 [BRANCH]
+                               /    |     \
+                          1..N/     |1     \1..N
+                            /       |       \
+                      <WorksAt>  <Manages>  <HasInspection>
+                        /           |              \
+                   M..1/          1..1              \
+                     /              |                \
+                [EMPLOYEE]      [BRANCH]        [INSPECTION]
+                /  |  |  \                       /  |  |  \
+               /   |  |   \                     /   |  |   \
+   (_employee_id_) | (wage) \        (_inspection_id_) |  (notes)
+              (name) (hire_date)           (insp_date) (result)
+                |
+             (type)
+               |
+     {GMGR, Shift Manager,
+      Cook/Kitchen, Cashier/Front}
+
+    * Employee to Branch via WorksAt: TOTAL participation (double line)
+      Every employee must be assigned to exactly one branch.
+    * Employee to Branch via Manages: PARTIAL participation
+      Only employees with type=GMGR participate. Each GMGR manages exactly one branch.
+
+
+================================================================================
+                       CUSTOMER — ORDER — BRANCH
+================================================================================
+
+     (name) (email) (phone) (rewards_pts) (date_joined)
+        \      \       |        /           /
+          --- (_customer_id_) ---
+                     |
+                 [CUSTOMER]
+                     |  1..N (partial participation — single line)
+                     |
+                  <Places>
+                     |
+                   1..1
+                     |
+               [PIZZA_ORDER]
+              /    |   |    \
+             /     |   |     \
+  (_order_id_)     |   |   (total_price)
+        (order_date)   (order_type)
+                       {'online','in-person'}
+                  |
+                1..1
+                  |
+             <ProcessedBy>
+                  |
+                N..1
+                  |
+              [BRANCH]
+
+    * Customer participation in Places is PARTIAL (single line):
+      Walk-in orders have no customer record (customer_id is nullable).
+    * Order to Branch via ProcessedBy: TOTAL participation on Order side.
+      Every order must belong to exactly one branch.
+
+
+================================================================================
+                    ORDER — MENU_ITEM (M:N via Contains)
+================================================================================
+
+              [PIZZA_ORDER]          [MENU_ITEM]
+                    \                   /
+                  M  \                / N
+                      \    ------   /
+                       <Contains>
+                        /      \
+                 (quantity)  (item_price)
+
+    * Relationship attributes: quantity, item_price
+    * Resolves to ORDER_ITEM table in relational schema
+    (_menu_item_id_) (name) (price) (category) — attributes of MENU_ITEM
+
+
+================================================================================
+                 MENU_ITEM — INGREDIENT (M:N via Uses)
+================================================================================
+
+               [MENU_ITEM]          [INGREDIENT]
+                    \                   /
+                  M  \                / N
+                      \             /
+                        <Uses>
+                          |
+                    (amt_required)
+
+   MENU_ITEM attributes:             INGREDIENT attributes:
+   (_item_id_)                        (_ingredient_id_)
+   (name)                             (name)
+   (price)                            (unit)
+   (category)                         (cost_per_unit)
+
+    * Resolves to RECIPE table in relational schema
+
+
+================================================================================
+                 BRANCH — INGREDIENT (M:N via Stocks)
+================================================================================
+
+                [BRANCH]            [INGREDIENT]
+                    \                   /
+                  M  \                / N
+                      \             /
+                       <Stocks>
+                       /       \
+              (qty_on_hand)  (last_updated)
+
+    * Resolves to INVENTORY table in relational schema
+
+
+================================================================================
+                  CUSTOMER — REWARD — ORDER (Owns + Redeems)
+================================================================================
+
+              [CUSTOMER]
+                   |  1..N
+                   |
+                <Owns>
+                   |
+                 1..1
+                   |
+               [REWARD]
+              /  |  |  \
+             /   |  |   \
+  (_reward_id_)  | (issue_date) (used_status)
+        (description) (reward_type)
+                   |
+                 0..1
+                   |
+              <Redeems>
+                   |
+                 0..1
+                   |
+            [PIZZA_ORDER]
+
+    * Owns: A customer owns many rewards; each reward belongs to one customer.
+      Total participation on Reward side (every reward has an owner).
+    * Redeems: A reward may be redeemed on at most one order (0..1).
+      An order may redeem at most one reward (0..1).
+    * Only registered customers can redeem rewards (BR13).
+
+
+================================================================================
