@@ -14,10 +14,20 @@
 ### Repo structure
 ```
 RitasPizzaProject/
-├── part1/          ← ER design (group, due Week 7)
-├── part2/          ← Oracle SQL schema + data (individual, due Week 11)
-├── part3/          ← SQL queries + PL/SQL (individual, due Week 15)
-└── CLAUDE_CONTEXT.md
+├── part1/                          ← ER design (group, due Week 7)
+│   ├── business-rules.md
+│   ├── chen-diagram-reference.txt  ← reference for drawing Chen diagram in draw.io
+│   ├── design-decisions.md
+│   ├── er-diagram.mmd             ← Mermaid source (crow's foot, not Chen)
+│   ├── relational-schema.dbml     ← paste into dbdiagram.io to generate diagram
+│   ├── relational-schema.md       ← full table definitions + constraints
+│   └── requirements-gathering.md
+├── part2/                          ← Oracle SQL schema + data (individual, due Week 11)
+├── part3/                          ← SQL queries + PL/SQL (individual, due Week 15)
+├── CLAUDE_CONTEXT.md
+├── TEAM_UPDATE.md                  ← shared with team, pending their review
+├── Database Project Part 1.pdf     ← current working document
+└── s26_Database_Project_Specs (1).pdf  ← assignment specs from professor
 ```
 
 ### Key constraint
@@ -28,39 +38,156 @@ Oracle-specific syntax: use `VARCHAR2`, `NUMBER`, `DATE`; sequences + triggers f
 
 ## Team
 
-- **Teammate** — wrote the relationship reasoning document (see `part1/`)
-- **Me (repo owner)** — full-stack, contributing ER diagram, relational schema, business rules, writeup, and eventually Part 2 + Part 3 individually
+- **Teammates (Stephen Cox, Hayden Domino, Chandler Duffey, Harrison Crabb)** — wrote the relationship reasoning document
+- **Me / Davos DeHoyos (repo owner)** — wrote requirements gathering, business rules, design decisions, relational schema, constraints section. Contributing Part 2 + Part 3 individually.
 
 ---
 
-## Part 1 status — IN PROGRESS (due Week 7)
+## Part 1 status — NEARLY COMPLETE (due Week 7)
 
-### What the teammate produced
-- Reasoning doc covering all 10 relationships with cardinality and justification
-- Entity identification: Employee, Branch, Customer, Order, MenuItem, Ingredient, Reward, Inspection
-- M:N relationship attributes called out: quantity (Contains), amount_required (Uses), quantity_on_hand + last_updated (Stocks)
-- Chen notation key defined
+### Done (in the document)
+- [x] Requirements gathering write-up (overview, domain research, functional requirements)
+- [x] Formal business rules list (BR1–BR15)
+- [x] Summary and reasoning for each major relation (teammate's section, kept as-is)
+- [x] Design decision notes (6 decisions + assumptions)
+- [x] Relational schema diagram (dbdiagram.io export — image in doc)
+- [x] Relational schema tables with PK/FK/constraints for all 11 tables
+- [x] Constraints not expressible in relational schema
 
-### What still needs to be produced (my contribution)
-- [ ] Requirements gathering write-up (2–3 paragraphs)
-- [ ] Formal business rules list (BR1–BR15 — drafted below)
-- [ ] Chen-notation ER diagram (image export for submission)
-- [ ] Relational schema diagram with PK/FK annotations
-- [ ] Design decision notes (alternatives considered + assumptions)
-- [ ] Package as `proj1.zip`
+### Still TODO
+- [ ] **Chen-notation ER diagram** — needs to be redrawn in draw.io with merged attributes (delegated to team, waiting on response). Reference: `part1/chen-diagram-reference.txt`
+- [ ] **Two small text edits** in teammate's reasoning section:
+  - Italic note on Places: make definitive ("partial participation to support walk-ins")
+  - Italic note on Redeems: decide yes/no on `redeem_date` attribute
+- [ ] **Remove "Diagram TODO:" label** from doc, replace with "# ER Diagram"
+- [ ] **Package as `proj1.zip`** — export PDF, zip, submit
+
+### Waiting on team
+- Approval of attribute merge decisions (listed in TEAM_UPDATE.md)
+- Someone to pick up the Chen diagram task
 
 ---
 
-## Decisions locked in
+## Attribute merge decisions (made 2026-03-22)
 
-| Question | Decision |
+These were decided during reconciliation of teammate's original attributes vs. mine. Sent to team for approval, not yet confirmed.
+
+| Change | Rationale |
 |---|---|
-| Walk-in / anonymous orders? | **Yes** — customer participation in Places is **partial** |
-| Employee must belong to a branch? | **Yes** — total participation, no unassigned employees |
-| Employee types tracked | GMGR, Shift Manager, Cook/Kitchen, Cashier/Front |
-| Order attributes | order_date, order_type (online/in-person), total_price |
-| Customer attributes | name, email, phone, rewards_pts, date_joined |
-| Branch attributes | street_addr, city, phone_no, opening_hrs, seating_cap |
+| `location` → `street_addr` + `city` | Better queryability |
+| Dropped `reputation` from Branch | Subjective, not transactional |
+| Merged `role` + `employee_type` → `type` | Redundant — same concept |
+| Added `wage` to Employee | From teammate's proposal, operationally useful |
+| `total_amount` → `total_price` | Consistent with MenuItem's `price` |
+| Dropped `certification_status` from Employee | Not in any business rule |
+| Dropped `expiration_date` from Ingredient | Belongs at inventory/batch level |
+| Added `cost_per_unit` to Ingredient | Useful for inventory valuation |
+| Added `reward_type`, `issue_date`, `used_status` to Reward | Supports BR12 one-time redemption |
+| Added `notes` to Inspection | Free-text alongside structured `result` |
+| Named Order table `PIZZA_ORDER` | `ORDER` is reserved in Oracle SQL |
+
+---
+
+## Entities and attributes (MERGED — current)
+
+### BRANCH
+| Attribute | Key? | Notes |
+|---|---|---|
+| branch_id | PK | |
+| street_addr | | |
+| city | | |
+| phone_no | | |
+| opening_hrs | | |
+| seating_cap | | |
+| manager_id | FK → Employee | UNIQUE, NOT NULL, GMGR only |
+
+### EMPLOYEE
+| Attribute | Key? | Notes |
+|---|---|---|
+| employee_id | PK | |
+| name | | |
+| type | | GMGR / Shift Manager / Cook/Kitchen / Cashier/Front |
+| hire_date | | |
+| wage | | NUMBER(8,2) |
+| branch_id | FK → Branch | NOT NULL, total participation |
+
+### CUSTOMER
+| Attribute | Key? | Notes |
+|---|---|---|
+| customer_id | PK | |
+| name | | |
+| email | | |
+| phone | | |
+| rewards_pts | | DEFAULT 0, running balance |
+| date_joined | | |
+
+### PIZZA_ORDER
+| Attribute | Key? | Notes |
+|---|---|---|
+| order_id | PK | |
+| order_date | | DATE, NOT NULL |
+| order_type | | 'online' or 'in-person' |
+| total_price | | NUMBER(10,2) |
+| customer_id | FK → Customer | nullable (walk-in) |
+| branch_id | FK → Branch | NOT NULL |
+| reward_id | FK → Reward | nullable, UNIQUE (at most one redemption) |
+
+### MENU_ITEM
+| Attribute | Key? | Notes |
+|---|---|---|
+| item_id | PK | |
+| name | | |
+| price | | NUMBER(8,2) |
+| category | | |
+
+### INGREDIENT
+| Attribute | Key? | Notes |
+|---|---|---|
+| ingredient_id | PK | |
+| name | | |
+| unit | | |
+| cost_per_unit | | NUMBER(8,2) |
+
+### REWARD
+| Attribute | Key? | Notes |
+|---|---|---|
+| reward_id | PK | |
+| description | | |
+| reward_type | | |
+| issue_date | | |
+| used_status | | VARCHAR2(1), DEFAULT 'N', CHECK Y/N |
+| customer_id | FK → Customer | NOT NULL |
+
+### INSPECTION
+| Attribute | Key? | Notes |
+|---|---|---|
+| inspection_id | PK | |
+| insp_date | | DATE, NOT NULL |
+| result | | NOT NULL |
+| notes | | VARCHAR2(500) |
+| branch_id | FK → Branch | NOT NULL |
+
+### Associative tables (M:N resolved)
+- `ORDER_ITEM` (order_id PK/FK, item_id PK/FK, quantity, item_price)
+- `RECIPE` (item_id PK/FK, ingredient_id PK/FK, amt_required)
+- `INVENTORY` (branch_id PK/FK, ingredient_id PK/FK, qty_on_hand, last_updated)
+
+---
+
+## Relationships summary
+
+| # | Name | Entities | Cardinality | Attributes on relationship |
+|---|---|---|---|---|
+| 1 | WorksAt | Employee → Branch | N:1 | — |
+| 2 | Manages | Employee → Branch | 1:1 (GMGR only) | — |
+| 3 | Places | Customer → Order | 1:N | — (partial on Customer) |
+| 4 | ProcessedBy | Branch → Order | 1:N | — |
+| 5 | Contains | Order ↔ MenuItem | M:N | quantity, item_price |
+| 6 | Uses | MenuItem ↔ Ingredient | M:N | amt_required |
+| 7 | Stocks | Branch ↔ Ingredient | M:N | qty_on_hand, last_updated |
+| 8 | Owns | Customer → Reward | 1:N | — |
+| 9 | Redeems | Reward ↔ Order | 0..1 : 0..1 | — |
+| 10 | HasInspection | Branch → Inspection | 1:N | — |
 
 ---
 
@@ -93,116 +220,12 @@ Oracle-specific syntax: use `VARCHAR2`, `NUMBER`, `DATE`; sequences + triggers f
 
 ---
 
-## Entities and attributes
+## Constraints not expressible in relational schema
 
-### Branch
-| Attribute | Key? | Notes |
-|---|---|---|
-| branch_id | PK | |
-| street_addr | | |
-| city | | |
-| phone_no | | |
-| opening_hrs | | |
-| seating_cap | | |
-| manager_id | FK → Employee | GMGR only |
-
-### Employee
-| Attribute | Key? | Notes |
-|---|---|---|
-| employee_id | PK | |
-| name | | |
-| type | | GMGR / Shift Mgr / Cook / Cashier |
-| hire_date | | |
-| branch_id | FK → Branch | total participation |
-
-### Customer
-| Attribute | Key? | Notes |
-|---|---|---|
-| customer_id | PK | |
-| name | | |
-| email | | |
-| phone | | |
-| rewards_pts | | running balance |
-| date_joined | | |
-
-### Order
-| Attribute | Key? | Notes |
-|---|---|---|
-| order_id | PK | |
-| order_date | | datetime |
-| order_type | | 'online' or 'in-person' |
-| total_price | | |
-| customer_id | FK → Customer | nullable (walk-in) |
-| branch_id | FK → Branch | |
-| reward_id | FK → Reward | nullable |
-
-### MenuItem
-| Attribute | Key? |
-|---|---|
-| item_id | PK |
-| name | |
-| price | |
-| category | |
-
-### Ingredient
-| Attribute | Key? |
-|---|---|
-| ingredient_id | PK |
-| name | |
-| unit | |
-
-### Reward
-| Attribute | Key? | Notes |
-|---|---|---|
-| reward_id | PK | |
-| description | | |
-| customer_id | FK → Customer | |
-
-### Inspection
-| Attribute | Key? | Notes |
-|---|---|---|
-| inspection_id | PK | |
-| insp_date | | |
-| result | | |
-| branch_id | FK → Branch | |
-
----
-
-## Relationships summary
-
-| # | Name | Entities | Cardinality | Attributes on relationship |
-|---|---|---|---|---|
-| 1 | WorksAt | Employee → Branch | N:1 | — |
-| 2 | Manages | Employee → Branch | 1:1 (GMGR only) | — |
-| 3 | Places | Customer → Order | 1:N | — (partial on Customer) |
-| 4 | ProcessedBy | Branch → Order | 1:N | — |
-| 5 | Contains | Order ↔ MenuItem | M:N | quantity, item_price |
-| 6 | Uses | MenuItem ↔ Ingredient | M:N | amt_required |
-| 7 | Stocks | Branch ↔ Ingredient | M:N | qty_on_hand, last_updated |
-| 8 | Owns | Customer → Reward | 1:N | — |
-| 9 | Redeems | Reward ↔ Order | 0..1 : 0..1 | — |
-| 10 | HasInspection | Branch → Inspection | 1:N | — |
-
-### Associative tables (M:N resolved)
-- `ORDER_ITEM` (order_id FK, item_id FK, quantity, item_price)
-- `RECIPE` (item_id FK, ingredient_id FK, amt_required)
-- `INVENTORY` (branch_id FK, ingredient_id FK, qty_on_hand, last_updated)
-
----
-
-## Design decisions (for proj1 writeup)
-
-### WorksAt vs Manages as separate relationships
-We considered combining both into a single relationship with a role attribute, but kept them separate because the participation rules are different: all employees participate in WorksAt (total), but only GMGRs participate in Manages (partial + restricted by type). Keeping them separate makes the constraint explicit in the diagram.
-
-### Walk-in orders
-We considered requiring all orders to have a customer account (total participation). We chose partial participation because Rita's Pizza serves walk-in customers who may not want to register, which is realistic for a pizza counter. Rewards cannot be applied to walk-in orders (BR13).
-
-### Inventory as a relationship, not an entity
-At the conceptual ER level, inventory describes how much of a given ingredient a branch has — this is naturally a property of the Branch–Ingredient relationship (Stocks), not a standalone real-world object. At the relational level it becomes an INVENTORY table, but the design intent is relationship-based.
-
-### Employee type as an attribute, not a subtype
-We considered making GMGR, Shift Manager, etc. into subtypes (ISA hierarchy). We chose a single `type` attribute instead because the subtypes share all the same attributes — there is no attribute that exists for GMGR but not for Cook. The only behavioral difference is the Manages relationship, which is already captured separately.
+1. **BR1/BR6** — manager_id UNIQUE FK ensures at most one manager, but enforcing `type = 'GMGR'` requires a trigger
+2. **BR9** — minimum one item per order can't be enforced declaratively; needs trigger or app logic
+3. **BR13** — if reward_id is set then customer_id must be NOT NULL; needs trigger or compound CHECK
+4. **Circular FK** — BRANCH refs EMPLOYEE (manager_id) and EMPLOYEE refs BRANCH (branch_id); handle with deferred constraints or NULL-then-update
 
 ---
 
