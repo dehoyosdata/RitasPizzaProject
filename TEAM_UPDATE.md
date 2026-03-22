@@ -12,9 +12,9 @@
 ## What still needs to be done
 
 ### 1. Chen ER Diagram (big item — ~30-45 min)
-The current text-art version in the doc still has **old attribute names** that conflict with the rest of the document. Someone needs to redraw it in **draw.io** (app.diagrams.net).
+Someone needs to redraw it in **draw.io** (app.diagrams.net) using Chen notation.
 
-Reference file with all correct entities, attributes, and relationships: `part1/chen-diagram-reference.txt`
+**Nomenclature:** ✓ Verified consistent between `part1/er-diagram.mmd` and `part1/chen-diagram-reference.txt`. Use these as reference for drawing in Chen notation (rectangles for entities, ovals for attributes, diamonds for relationships).
 
 **Can someone pick this up?**
 

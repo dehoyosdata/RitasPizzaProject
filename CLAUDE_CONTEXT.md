@@ -55,11 +55,11 @@ Oracle-specific syntax: use `VARCHAR2`, `NUMBER`, `DATE`; sequences + triggers f
 - [x] Constraints not expressible in relational schema
 
 ### Still TODO
-- [ ] **Chen-notation ER diagram** — needs to be redrawn in draw.io with merged attributes (delegated to team, waiting on response). Reference: `part1/chen-diagram-reference.txt`
-- [ ] **Two small text edits** in teammate's reasoning section:
-  - Italic note on Places: make definitive ("partial participation to support walk-ins")
-  - Italic note on Redeems: decide yes/no on `redeem_date` attribute
-- [ ] **Remove "Diagram TODO:" label** from doc, replace with "# ER Diagram"
+- [ ] **Chen-notation ER diagram** — needs to be redrawn in draw.io using Chen notation (delegated to team, waiting on response). Reference: `part1/chen-diagram-reference.txt` ✓ Nomenclature verified consistent with `er-diagram.mmd`.
+- [x] **Two small text edits** in teammate's reasoning section:
+  - Italic note on Places: made definitive ("partial participation to support walk-ins")
+  - Italic note on Redeems: decided NO on `redeem_date` attribute
+- [x] **Remove "Diagram TODO:" label** from doc, replace with "# ER Diagram"
 - [ ] **Package as `proj1.zip`** — export PDF, zip, submit
 
 ### Waiting on team
