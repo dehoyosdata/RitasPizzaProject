@@ -18,11 +18,13 @@ Someone needs to redraw it in **draw.io** (app.diagrams.net) using Chen notation
 
 **Can someone pick this up?**
 
-### 2. Two small text edits in the relationship reasoning section
-- The italic note about walk-in orders on **Places** — needs to be made definitive since we decided walk-ins are supported (BR7)
-- The italic note about maybe adding `redeem_date` to **Redeems** — needs a yes/no decision
+### ~~2. Two small text edits in the relationship reasoning section~~ ✅ DONE
+- ~~The italic note about walk-in orders on **Places**~~ — made definitive ("partial participation to support walk-ins")
+- ~~The italic note about maybe adding `redeem_date` to **Redeems**~~ — decided NO
 
-### 3. Final packaging
+### ~~3. Remove "Diagram TODO:" label~~ ✅ DONE
+
+### 4. Final packaging
 Once the Chen diagram is done: export as PDF → zip as `proj1.zip` → submit.
 
 ---
