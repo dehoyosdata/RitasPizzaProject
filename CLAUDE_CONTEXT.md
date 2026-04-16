@@ -14,25 +14,45 @@
 ### Repo structure
 ```
 RitasPizzaProject/
-├── part1/                          ← ER design (group, due Week 7)
+├── part1/                                  ← ER design (group, due Week 7)
 │   ├── business-rules.md
-│   ├── chen-diagram-reference.txt  ← reference for drawing Chen diagram in draw.io
+│   ├── chen-diagram-reference.txt          ← reference for drawing Chen diagram in draw.io
 │   ├── design-decisions.md
-│   ├── er-diagram.mmd             ← Mermaid source (crow's foot, not Chen)
-│   ├── relational-schema.dbml     ← paste into dbdiagram.io to generate diagram
-│   ├── relational-schema.md       ← full table definitions + constraints
+│   ├── er-diagram.mmd                     ← Mermaid source (crow's foot, not Chen)
+│   ├── er-diagrams.pdf                    ← ER diagram PDF (added by Chandler, PR #1)
+│   ├── relational-schema.dbml             ← paste into dbdiagram.io to generate diagram
+│   ├── relational-schema.md               ← full table definitions + constraints
 │   └── requirements-gathering.md
-├── part2/                          ← Oracle SQL schema + data (individual, due Week 11)
-├── part3/                          ← SQL queries + PL/SQL (individual, due Week 15)
+├── part2/                                  ← MySQL schema + seed data (due Week 11)
+│   ├── docker-compose.yml                 ← MySQL 8.4 container setup
+│   ├── DOCKER.md                          ← setup instructions
+│   ├── TODO.md                            ← assignment requirements checklist
+│   ├── .env.example                       ← connection config template
+│   ├── mysql/init/
+│   │   ├── proj2-makeSchema.sql           ← SUBMISSION FILE: creates all 11 tables
+│   │   ├── DataGeneration/
+│   │   │   ├── proj2-fillSchema.py        ← SUBMISSION FILE: Python seed script
+│   │   │   └── seed_library_data.py       ← professor's example (reference only)
+│   │   └── README.md
+│   └── example-queries/                   ← 6 preview queries for Part 3
+│       ├── 01-database-overview.sql
+│       ├── 02-branch-sales-summary.sql
+│       ├── 03-recent-orders.sql
+│       ├── 04-menu-recipes.sql
+│       ├── 05-customer-rewards.sql
+│       └── 06-inventory-status.sql
+├── part3/                                  ← SQL queries (individual, due Week 15)
 ├── CLAUDE_CONTEXT.md
-├── TEAM_UPDATE.md                  ← shared with team, pending their review
-├── Database Project Part 1.pdf     ← current working document
-└── s26_Database_Project_Specs (1).pdf  ← assignment specs from professor
+├── TEAM_UPDATE.md                          ← shared with team, pending their review
+├── Database Project Part 1.pdf             ← Part 1 working document
+└── s26_Database_Project_Specs (1).pdf      ← original assignment specs from professor
 ```
 
-### Key constraint
-Parts 2 and 3 **must run on Oracle SQL*Plus** at Texas State labs — not Postgres, not Supabase.
-Oracle-specific syntax: use `VARCHAR2`, `NUMBER`, `DATE`; sequences + triggers for auto-increment (no `SERIAL`).
+### Database choice
+Professor updated Part 2 guidelines (2026-04-15): **any database is allowed.** Team chose **MySQL 8.4** via Docker.
+MySQL syntax: `VARCHAR(n)`, `INT`, `DECIMAL(p,s)`, `AUTO_INCREMENT` for PKs, `SET FOREIGN_KEY_CHECKS` for circular FKs.
+
+> **Part 3 note:** The original spec says Part 3 uses Oracle SQL + PL/SQL. Need to confirm with professor whether Part 3 guidelines are also updated to allow MySQL, or if we need to port the schema.
 
 ---
 
@@ -40,6 +60,7 @@ Oracle-specific syntax: use `VARCHAR2`, `NUMBER`, `DATE`; sequences + triggers f
 
 - **Teammates (Stephen Cox, Hayden Domino, Chandler Duffey, Harrison Crabb)** — wrote the relationship reasoning document
 - **Me / Davos DeHoyos (repo owner)** — wrote requirements gathering, business rules, design decisions, relational schema, constraints section. Contributing Part 2 + Part 3 individually.
+- **Chandler Duffey** — added ER diagram PDF (PR #1, merged 2026-03-23)
 
 ---
 
@@ -84,7 +105,7 @@ These were decided during reconciliation of teammate's original attributes vs. m
 | Added `cost_per_unit` to Ingredient | Useful for inventory valuation |
 | Added `reward_type`, `issue_date`, `used_status` to Reward | Supports BR12 one-time redemption |
 | Added `notes` to Inspection | Free-text alongside structured `result` |
-| Named Order table `PIZZA_ORDER` | `ORDER` is reserved in Oracle SQL |
+| Named Order table `PIZZA_ORDER` | `ORDER` is reserved in SQL |
 
 ---
 
@@ -229,37 +250,54 @@ These were decided during reconciliation of teammate's original attributes vs. m
 
 ---
 
-## Part 2 preview (individual — Week 11)
+## Part 2 status — COMPLETE (due Week 11)
 
-Files needed:
-- `proj2-makeSchema.sql` — CREATE TABLE statements + sequences/triggers
-- `proj2-dropDb.sql` — DROP TABLE in reverse FK order
-- 5 sample rows per table (INSERT statements)
+**Professor updated guidelines (2026-04-15):** Ignore old Part 2 spec. Any database allowed. Schema and data must be in separate files.
 
-Must run on **Oracle SQL*Plus** at Texas State. Key Oracle differences from Postgres/Supabase:
-- `VARCHAR2(n)` not `VARCHAR`
-- `NUMBER(p,s)` not `DECIMAL`
-- No `SERIAL` — use `CREATE SEQUENCE` + `BEFORE INSERT` trigger
-- `DATE` stores date+time in Oracle
-- String concat uses `||`
+### Submission files
+- `part2/mysql/init/proj2-makeSchema.sql` — creates all 11 tables (empty), MySQL syntax, well-commented
+- `part2/mysql/init/DataGeneration/proj2-fillSchema.py` — Python seed script (stdlib only, no external deps)
+
+### What the seed script generates
+| Table | Records | Notes |
+|---|---|---|
+| BRANCH | 5 | Texas cities (San Marcos, New Braunfels, Austin, Kyle, Wimberley) |
+| EMPLOYEE | 30 | 6 per branch: 1 GMGR + 1 Shift Mgr + 2 Cooks + 2 Cashiers |
+| CUSTOMER | 80 | Configurable via `--customers` flag |
+| MENU_ITEM | 18 | Pizzas, sides, desserts, drinks |
+| INGREDIENT | 30 | Pizza-domain ingredients with costs |
+| REWARD | 60 | Discount, Free Item, Special types |
+| PIZZA_ORDER | 200 | Configurable via `--orders`; 72% registered, 28% walk-in |
+| INSPECTION | 20 | 4 per branch |
+| ORDER_ITEM | ~400 | 1–4 items per order |
+| RECIPE | ~75 | Full ingredient lists for all 18 menu items |
+| INVENTORY | 150 | All 30 ingredients × 5 branches |
+
+### How the circular FK is handled
+BRANCH and EMPLOYEE reference each other. The seed script uses `SET FOREIGN_KEY_CHECKS = 0` to insert both tables, then re-enables checks. The data is consistent — every branch.manager_id points to a valid GMGR employee.
+
+### How to run
+```bash
+cd part2
+docker compose up -d                                      # start MySQL
+python mysql/init/DataGeneration/proj2-fillSchema.py      # seed data
+python mysql/init/DataGeneration/proj2-fillSchema.py --force   # reseed
+python mysql/init/DataGeneration/proj2-fillSchema.py --print-sql  # preview SQL
+```
+
+### Extra: example queries
+6 SQL files in `part2/example-queries/` preview Part 3 work: row counts, branch sales, recent orders, recipes, customer rewards, inventory alerts.
+
+---
 
 ## Part 3 preview (individual — Week 15)
 
 Will need:
 - SELECT queries with JOINs, GROUP BY, subqueries
-- PL/SQL procedures — good candidates:
+- Stored procedures — good candidates:
   - Place an order (insert order + order items, update inventory)
   - Redeem a reward (check one-time-use constraint, link to order)
   - Log an inspection result
   - Report branch sales totals
 
----
-
-## Optional bonus (post Week 7)
-
-A deployed web dashboard using:
-- **Supabase** (Postgres mirror of the schema) — account already created
-- **React + Recharts** for branch sales, ingredient usage, reward tracking charts
-- **Vercel** for hosting — shareable link for the team
-
-This is separate from Oracle deliverables and does not replace them.
+> **Open question:** Original spec says Oracle SQL + PL/SQL. If professor updates Part 3 guidelines like Part 2, we can stay on MySQL. Otherwise may need to port schema to Oracle. The 6 example queries in `part2/example-queries/` are a head start either way.
