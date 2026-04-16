@@ -25,3 +25,9 @@ Get-ChildItem .\example-queries\*.sql | Sort-Object Name | ForEach-Object {
 - `04-menu-recipes.sql` shows menu items and their ingredients.
 - `05-customer-rewards.sql` summarizes customer spending and reward use.
 - `06-inventory-status.sql` shows ingredients that are low or worth checking.
+
+### Part 3 preview (advanced)
+
+- `07-top-customers-by-branch.sql` ranks customers by spending per branch using `RANK()` window function.
+- `08-ingredient-usage-vs-stock.sql` compares 30-day ingredient usage against inventory using correlated subqueries.
+- `09-monthly-sales-trends.sql` shows revenue trends with running totals and month-over-month growth via `LAG()` and CTEs.

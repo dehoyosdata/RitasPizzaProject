@@ -5,7 +5,15 @@
 | File | Location | Purpose |
 |---|---|---|
 | `proj2-makeSchema.sql` | `mysql/init/proj2-makeSchema.sql` | Creates database and all 11 tables (empty) |
-| `proj2-fillSchema.py` | `mysql/init/DataGeneration/proj2-fillSchema.py` | Generates and inserts sample data |
+| `proj2-fillSchema.py` | `mysql/init/DataGeneration/proj2-fillSchema.py` | Generates and inserts sample data (Option B) |
+| `proj2-fillSchema.sql` | `proj2-fillSchema.sql` | Static SQL seed data (Option A backup) |
+
+## Additional Files
+
+| File | Purpose |
+|---|---|
+| `proj2-verify.sql` | Business rule verification — proves BR1-BR15 hold in seeded data |
+| `example-queries/07-09` | Advanced Part 3 preview queries (window functions, CTEs, subqueries) |
 
 ## Quick Start
 
@@ -34,6 +42,8 @@ Options:
 - `--seed N` — random seed for reproducibility (default 42)
 
 No external Python dependencies required (stdlib only).
+
+A pre-generated static SQL version is also available at `proj2-fillSchema.sql` (Option A) if you prefer to load data without running Python.
 
 ### 3. Run Example Queries
 
@@ -69,5 +79,15 @@ docker compose up -d      # recreates from scratch
 | ORDER_ITEM | Associative (M:N) | order_id + item_id composite PK |
 | RECIPE | Associative (M:N) | item_id + ingredient_id composite PK |
 | INVENTORY | Associative (M:N) | branch_id + ingredient_id composite PK |
+
+### Verify Business Rules
+
+After seeding, run the verification script to confirm all 15 business rules hold:
+
+```bash
+cat proj2-verify.sql | docker compose exec -T mysql mysql -uroot -prootpassword ritas_pizza
+```
+
+Every "VIOLATION CHECK" query should return 0 rows.
 
 See `DOCKER.md` for detailed Docker setup instructions.
